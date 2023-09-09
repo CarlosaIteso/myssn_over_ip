@@ -121,7 +121,7 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 
             // Actualizar data y crc en dataptr
             *dataptr = (void *)data;
-            ((uint32_t *)*dataptr+4) = crc;
+            *((uint32_t *)(*dataptr) + 4) = crc_result;
 
             //imprimir mensaje
             const uint8_t *byteptr = (const uint8_t *)*dataptr;
