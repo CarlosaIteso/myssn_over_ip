@@ -20,13 +20,18 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 	const uint8_t *data;
 	uint32_t *crc;
 	uint32_t crc_result;
+	//To-do implementar un argumnento de entrada que indique si dataptr contiene crc
 
-	// comprobar si el mensaje es múltiplo de 16 + 4
-	if ((*len % (16 + 4)) == 0) {
+	//bloque de 16 bytes en dataptr
+	uint8_t data_blocks = (*len-*len % 16)/16;
+	PRINTF("\nNumero de bloques de 16 bytes en el mensaje recibido:\n%d\n",data_blocks);
+
+	// comprobar si el mensaje es múltiplo de 16
+	if (*len % 16 == 4) {
 
 		// dividir mensaje en data y crc
 		data = (uint8_t *)*dataptr;
-		crc = (uint32_t *)((uint8_t *)*dataptr + 16);
+		crc = (uint32_t *)((uint8_t *)*dataptr + data_blocks*16);
 
 		//configurar CRC
 		CRC_Type *base = CRC0;
@@ -43,7 +48,7 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 		CRC_Init(base, &config);
 
 		//calcular crc
-		CRC_WriteData(base, data, 16);
+		CRC_WriteData(base, data, data_blocks*16);
 
 		//imprimir crc recibido
 		PRINTF("crc recibido: \n");
@@ -74,17 +79,17 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 
 			// imprimir data byte por byte
 			PRINTF("Mensaje cifrado:\n");
-			for (uint8_t i = 0; i < 16; i++) {
+			for (uint8_t i = 0; i < (data_blocks*16); i++) {
 				PRINTF("%02X ", data[i]);
 			}
 			PRINTF("\n");
 
 			//desencriptar data
-			AES_CBC_decrypt_buffer(&ctx, (uint8_t *) data, 16);
+			AES_CBC_decrypt_buffer(&ctx, (uint8_t *) data, data_blocks*16);
 
 			//imprimir data descifrfada byte por byte
 			PRINTF("Mensaje descifrado:\n");
-			for (size_t i = 0; i < 16; i++) {
+			for (uint8_t i = 0; i < (data_blocks*16); i++) {
 			    PRINTF("%02X ", data[i]);
 			}
 			PRINTF("\n");
@@ -93,11 +98,11 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 			AES_init_ctx_iv(&ctx, key, iv);
 
 			//encriptar
-			AES_CBC_encrypt_buffer(&ctx, (uint8_t *) data, 16);
+			AES_CBC_encrypt_buffer(&ctx, (uint8_t *) data, data_blocks*16);
 
 			//imprimir data encryptada
 			PRINTF("data cifrado:\n");
-			for (uint8_t i = 0; i < 16; i++) {
+			for (uint8_t i = 0; i < (data_blocks*16); i++) {
 				PRINTF("%02X ", data[i]);
 			}
 			PRINTF("\n");
@@ -106,14 +111,14 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 			CRC_Init(base, &config);
 
 			//calcular crc
-			CRC_WriteData(base, data, 16);
+			CRC_WriteData(base, data, data_blocks*16);
 
 			//obtener el resultado del crc
 			crc_result = CRC_Get32bitResult(base);
 
 			//imprimir resultado del crc calculado
 			PRINTF("crc calculado: \n");
-			for (int i = 0; i < 4; i++) {
+			for (uint8_t i = 0; i < 4; i++) {
 				uint8_t crc_result_byte = (crc_result >> (i * 8)) & 0xFF;
 				PRINTF("%02X ", crc_result_byte);
 			}
@@ -126,7 +131,7 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
             //imprimir mensaje
             const uint8_t *byteptr = (const uint8_t *)*dataptr;
 
-            for (size_t i = 0; i < 20; i++) {
+            for (uint16_t i = 0; i < *len; i++){
                 PRINTF("%02X ", byteptr[i]);
             }
             PRINTF("\n");
