@@ -21,6 +21,6 @@
 //PRINTF
 #include "fsl_debug_console.h"
 
-void myssn_over_ip(void **dataptr,u16_t *len);
+uint8_t myssn_over_ip(void **dataptr,uint16_t *len);
 
 #endif /* MYSSN_OVER_IP_H_ */

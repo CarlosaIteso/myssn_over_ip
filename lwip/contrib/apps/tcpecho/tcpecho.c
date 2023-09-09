@@ -81,11 +81,9 @@ tcpecho_thread(void *arg)
     	  do {
              netbuf_data(buf, &data, &len);
 
-             PRINTF("%d", len);
-
+             //implementacion safe server
              myssn_over_ip( &data,&len);
 
-             //escribir el mensaje al server
              err = netconn_write(newconn, data, len, NETCONN_COPY);
 #if 0
             if (err != ERR_OK) {
