@@ -1,5 +1,6 @@
 myssn_over_ip/myssn_over_ip.o myssn_over_ip/myssn_over_ip.d: \
  ../myssn_over_ip/myssn_over_ip.c ../myssn_over_ip/myssn_over_ip.h \
+ C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\tiny-AES-c/aes.h \
  C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\drivers/fsl_crc.h \
  C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\drivers/fsl_common.h \
  C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\device/fsl_device_registers.h \
@@ -25,6 +26,7 @@ myssn_over_ip/myssn_over_ip.o myssn_over_ip/myssn_over_ip.d: \
  C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\freertos\freertos_kernel\portable\GCC\ARM_CM4F/portmacro.h \
  C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\freertos\freertos_kernel\include/mpu_wrappers.h
 ../myssn_over_ip/myssn_over_ip.h:
+C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\tiny-AES-c/aes.h:
 C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\drivers/fsl_crc.h:
 C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\drivers/fsl_common.h:
 C:\Users\guion\Documents\MCUXpressoIDE_11.8.0_1165\workspace\frdmk64f_lwip_tcpecho_freertos_myssn_over_ip\device/fsl_device_registers.h:

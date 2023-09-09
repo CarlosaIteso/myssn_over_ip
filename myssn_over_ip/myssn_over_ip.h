@@ -12,7 +12,11 @@
 
 #include "stdint.h"
 #include "stdbool.h"
-//CRC
+
+//aes
+#include "aes.h"
+
+//crc
 #include "fsl_crc.h"
 
 //memcpy

@@ -36,5 +36,6 @@ myssn_over_ip \
 phy \
 source \
 startup \
+tiny-AES-c \
 utilities \
 
