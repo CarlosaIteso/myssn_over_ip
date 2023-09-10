@@ -20,11 +20,11 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 	const uint8_t *data;
 	uint32_t *crc;
 	uint32_t crc_result;
-	//To-do implementar un argumnento de entrada que indique si dataptr contiene crc
+	//To-do implementar un handleo para fragmentacion de paquetes
 
 	//bloque de 16 bytes en dataptr
 	uint8_t data_blocks = (*len-*len % 16)/16;
-	PRINTF("\nNumero de bloques de 16 bytes en el mensaje recibido:\n%d\n",data_blocks);
+	PRINTF("\nBloques de data (16-bytes):\n%d\n",data_blocks);
 
 	// comprobar si el mensaje es múltiplo de 16
 	if (*len % 16 == 4) {
@@ -74,34 +74,41 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 
 			struct AES_ctx ctx;
 
-			//inicializar ctx
-			AES_init_ctx_iv(&ctx, key, iv);
-
 			// imprimir data byte por byte
-			PRINTF("Mensaje cifrado:\n");
+			PRINTF("data cifrada:\n");
 			for (uint8_t i = 0; i < (data_blocks*16); i++) {
 				PRINTF("%02X ", data[i]);
 			}
 			PRINTF("\n");
 
-			//desencriptar data
-			AES_CBC_decrypt_buffer(&ctx, (uint8_t *) data, data_blocks*16);
+			//desencryptar por bloques de 16-bytes
+			for (uint8_t i = 0; i < (data_blocks); i++){
+				//inicializar ctx
+				AES_init_ctx_iv(&ctx, key, iv);
+
+				//desencriptar data
+				AES_CBC_decrypt_buffer(&ctx, (uint8_t *) data + i*16 , 16);
+			}
 
 			//imprimir data descifrfada byte por byte
-			PRINTF("Mensaje descifrado:\n");
+			PRINTF("data descifrada:\n");
 			for (uint8_t i = 0; i < (data_blocks*16); i++) {
 			    PRINTF("%02X ", data[i]);
 			}
 			PRINTF("\n");
 
-			//inicializar ctx
-			AES_init_ctx_iv(&ctx, key, iv);
 
-			//encriptar
-			AES_CBC_encrypt_buffer(&ctx, (uint8_t *) data, data_blocks*16);
+			//encryptar por bloques de 16-bytes
+			for (uint8_t i = 0; i < (data_blocks); i++){
+				//inicializar ctx
+				AES_init_ctx_iv(&ctx, key, iv);
+
+				//desencriptar data
+				AES_CBC_encrypt_buffer(&ctx, (uint8_t *) data + i*16 , 16);
+			}
 
 			//imprimir data encryptada
-			PRINTF("data cifrado:\n");
+			PRINTF("data cifrada:\n");
 			for (uint8_t i = 0; i < (data_blocks*16); i++) {
 				PRINTF("%02X ", data[i]);
 			}
@@ -125,10 +132,11 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 			PRINTF("\n");
 
             // Actualizar data y crc en dataptr
-            *dataptr = (void *)data;
-            *((uint32_t *)(*dataptr) + 4) = crc_result;
+            //*dataptr = (void *)data;
+            memcpy((uint8_t *)*dataptr + data_blocks * 16, &crc_result, sizeof(uint32_t));
 
             //imprimir mensaje
+            PRINTF("Mensaje (data + crc) para enviar: \n");
             const uint8_t *byteptr = (const uint8_t *)*dataptr;
 
             for (uint16_t i = 0; i < *len; i++){
