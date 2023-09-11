@@ -1,25 +1,47 @@
 /*
- * myssn_over_ip.c
+ * myssn_over_ip.h
  *
  *  Created on: 6 sep. 2023
- *      Author: guion
+ *      Author: Carlos Zepeda
  */
 
 #include "myssn_over_ip.h"
 
-//funcion: myssn_over_ip
-//dataptr -- mensaje completo
+/**
+ * @brief Función myssn_over_ip
+ *
+ * La función `myssn_over_ip` se utiliza para procesar paquetes de datos que contienen información cifrada y un valor CRC (Cyclic Redundancy Check) para verificar la integridad de los datos. La función realiza la validación del CRC, desencripta y luego vuelve a encriptar los datos utilizando AES (Advanced Encryption Standard) en modo CBC (Cipher Block Chaining).
+
+ * @param dataptr Puntero a un puntero de tipo void que apunta a los datos de entrada y al valor CRC. La función modificará los datos de entrada en este puntero si se procesan correctamente.
+ * @param len Puntero a un valor uint16_t que indica la longitud de los datos de entrada.
+ *
+ * @return uint8_t Un valor entero sin signo (1 o 0) que indica el resultado del procesamiento:
+ * - 1: Si el procesamiento fue exitoso y el CRC se validó correctamente.
+ * - 0: Si se produjo un error durante el procesamiento, como un CRC no válido o una longitud de datos incorrecta.
+ *
+ * La función realiza las siguientes operaciones:
+ * 1. Valida si la longitud de los datos es un múltiplo de 16 bytes más 4 bytes.
+ * 2. Calcula el CRC de los datos y lo compara con el CRC recibido.
+ * 3. Si el CRC coincide, desencripta los datos utilizando AES en modo CBC y luego los vuelve a encriptar.
+ * 4. Actualiza el CRC en los datos procesados.
+ * 5. Retorna 1 si el procesamiento fue exitoso, 0 en caso contrario.
+ *
+ * Es importante asegurarse de que las bibliotecas y funciones adecuadas de CRC y AES estén disponibles y sean utilizadas en la implementación real de esta función.
+ *      Author: Carlos Zepeda
+ */
+
 uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 
 	//vector incial
-	uint8_t iv[]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	const uint8_t iv[]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 	//clave
-	uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+	const uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
 
 	const uint8_t *data;
 	uint32_t *crc;
 	uint32_t crc_result;
+	uint8_t byte;
 	//To-do implementar un handleo para fragmentacion de paquetes
 
 	//bloque de 16 bytes en dataptr
@@ -44,19 +66,19 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 		config.crcBits            = kCrcBits32;
 		config.crcResult          = kCrcFinalChecksum;
 
+		//imprimir crc recibido
+		PRINTF("crc recibido: \n");
+		for (int i = 0; i < 4; i++) {
+			uint8_t byte = (*crc >> (i * 8)) & 0xFF;
+			PRINTF("%02X ", byte);
+		}
+		PRINTF("\n");
+
 		//iniciar crc
 		CRC_Init(base, &config);
 
 		//calcular crc
 		CRC_WriteData(base, data, data_blocks*16);
-
-		//imprimir crc recibido
-		PRINTF("crc recibido: \n");
-		for (int i = 0; i < 4; i++) {
-			uint8_t crc_result_byte = (*crc >> (i * 8)) & 0xFF;
-			PRINTF("%02X ", crc_result_byte);
-		}
-		PRINTF("\n");
 
 		//obtener el resultado de crc
 		crc_result = CRC_Get32bitResult(base);
@@ -64,15 +86,13 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 		//imprimir resultado del crc calculado
 		PRINTF("crc calculado: \n");
 	    for (int i = 0; i < 4; i++) {
-	        uint8_t crc_result_byte = (crc_result >> (i * 8)) & 0xFF;
-	        PRINTF("%02X ", crc_result_byte);
+	        uint8_t byte = (crc_result >> (i * 8)) & 0xFF;
+	        PRINTF("%02X ", byte);
 	    }
 	    PRINTF("\n");
 
 		//comprobar resultado crc
 		if (crc_result == *crc){
-
-			struct AES_ctx ctx;
 
 			// imprimir data byte por byte
 			PRINTF("data cifrada:\n");
@@ -81,13 +101,15 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 			}
 			PRINTF("\n");
 
+			//inicializar ctx
+			struct AES_ctx ctx;
+			AES_init_ctx_iv(&ctx, key, iv);
+
 			//desencryptar por bloques de 16-bytes
 			for (uint8_t i = 0; i < (data_blocks); i++){
-				//inicializar ctx
-				AES_init_ctx_iv(&ctx, key, iv);
 
 				//desencriptar data
-				AES_CBC_decrypt_buffer(&ctx, (uint8_t *) data + i*16 , 16);
+				AES_CBC_decrypt_buffer(&ctx, (uint8_t *) (data + i*16) , 16);
 			}
 
 			//imprimir data descifrfada byte por byte
@@ -97,14 +119,14 @@ uint8_t myssn_over_ip(void **dataptr,uint16_t *len){
 			}
 			PRINTF("\n");
 
+			//inicializar ctx
+			AES_init_ctx_iv(&ctx, key, iv);
 
 			//encryptar por bloques de 16-bytes
 			for (uint8_t i = 0; i < (data_blocks); i++){
-				//inicializar ctx
-				AES_init_ctx_iv(&ctx, key, iv);
 
 				//desencriptar data
-				AES_CBC_encrypt_buffer(&ctx, (uint8_t *) data + i*16 , 16);
+				AES_CBC_encrypt_buffer(&ctx, (uint8_t *) (data + i*16) , 16);
 			}
 
 			//imprimir data encryptada

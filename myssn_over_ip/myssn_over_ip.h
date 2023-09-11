@@ -2,7 +2,7 @@
  * myssn_over_ip.h
  *
  *  Created on: 6 sep. 2023
- *      Author: guion
+ *      Author: Carlos Zepeda
  */
 
 #ifndef MYSSN_OVER_IP_H_
